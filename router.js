@@ -1,4 +1,4 @@
-function route(pathname) {
+var route = function (pathname) {
 	console.log("Request to " + pathname);
 }
 
