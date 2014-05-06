@@ -4,13 +4,9 @@ var url = require("url");
 var iniciar = function(route, handle) {
 	var onRequest = function(request, response) {
 		var pathname = url.parse(request.url).pathname;
-		console.log("Request to " + pathname + " received.");
+		console.log("Request for " + pathname + " received.");
 
-		var content = route(handle, pathname);
-		
-		response.writeHead(200, {"Content-Type": "text/html"});
-		response.write(content);
-		response.end();
+		var content = route(handle, pathname, response);
 	};
 
 	http.createServer(onRequest).listen(8888);

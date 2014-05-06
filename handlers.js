@@ -1,23 +1,24 @@
-var sys = require('sys')
 var exec = require('child_process').exec;
 
 
-var iniciar = function () {
-	var content = "";
-
+var iniciar = function (response) {
 	console.log("Manipulador de petición 'iniciar' ha sido llamado.")
 
 	// lists current server directory
-	var child = exec("ls -lah", function (error, stdout, stderr) {
-  		content = stdout;
-	});
-
-	return content;
+	exec("find /", 
+		{ timeout: 10000, maxBuffer: 20000*1024 },
+		function (error, stdout, stderr) {
+    		response.writeHead(200, {"Content-Type": "text/html"});
+    		response.write(stdout);
+    		response.end();
+		});
 }
 
-var subir = function () {
-	console.log("Manipulador de petición 'subir' ha sido llamado.")
-	return "Hola Subir";
+var subir = function (response) {
+	console.log("Manipulador de petición 'subir' fue llamado.");
+	response.writeHead(200, {"Content-Type": "text/html"});
+	response.write("Hola Subir");
+	response.end();
 }
 
 exports.iniciar = iniciar;
