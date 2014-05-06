@@ -1,4 +1,4 @@
-var route = function (handle, pathname, response) {
+var route = function (handle, pathname, response, data) {
 	console.log("About to route a request for " + pathname);
 	
 	if (typeof handle[pathname] !== 'function') {
@@ -8,7 +8,7 @@ var route = function (handle, pathname, response) {
     	response.end();
 	} 
 	else {
-		handle[pathname](response);
+		handle[pathname](response, data);
 	}
 }
 
