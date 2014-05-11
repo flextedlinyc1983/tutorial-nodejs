@@ -38,7 +38,7 @@ var serveStatic = function (response, cache, absPath) {
     }
 };
 
-
+// Set up HTTP server.
 var server = http.createServer(function (request, response) {
     var filePath = (request.url === '/') ? 'public/index.html' : 'public' + request.url;
     var absPath = './' + filePath;
@@ -47,3 +47,7 @@ var server = http.createServer(function (request, response) {
 server.listen(PORT, function () {
     console.log('Server listening on port ' + PORT);
 });
+
+// Set up Socket.IO server.
+var chatServer = require('.lib/chat_server');
+chatServer.listen(server);
