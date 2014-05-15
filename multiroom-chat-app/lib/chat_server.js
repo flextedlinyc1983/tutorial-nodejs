@@ -40,6 +40,36 @@ var assignGuestName = function (socket, guestNumber, nickNames, namesUsed) {
     return guestNumber + 1;
 };
 
+var handleNameChangeAttempts = function (socket, nickNames, namesUsed) {
+    socket.on('nameAttempt', function (name) {
+        if (name.indexOf('Guest') === 0) { // Don't allow nicknames to beg in with Guest
+            socket.emit('nameResult', {
+                success: false,
+                message: 'Names cannot begin with "Guest".'
+            });
+        } else if (namesUsed.indexOf(name) === -1) { // Check new name is already registered.
+            var previousName = nickNames[socket.id];
+            var previousNameIndex = namesUsed.indexOf(previousName);
+            namesUsed.push(name);
+            nickNames[socket.id] = name;
+            delete namesUsed[previousNameIndex]; // Removes previous name to make it available to other clients
+
+            socket.emit('namesResult', {
+                success: true,
+                name: name
+            });
+            socket.broadcast.to(currentRoom[socket.id]).emit('message', {
+                text: previousName + ' is now knows as ' + name + '.'
+            });
+        } else { // Send error to client if name is already registered
+            socket.emit('namesResult', {
+                success: false,
+                message: 'That name is already in user.'
+            });
+        }
+    });
+};
+
 var joinRoom = function (socket, room) {
     socket.join(room);  // USer joins room.
     currentRoom[socket.id] = room; // User is now in this room.
