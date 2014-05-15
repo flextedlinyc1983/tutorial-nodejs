@@ -94,3 +94,12 @@ var joinRoom = function (socket, room) {
         socket.emit('message', {text: usersInRoomSummary});
     }
 };
+
+
+var handleMessageBroadcasting = function (socket) {
+    socket.on('message', function (message) {
+        socket.broadcast(message.room).emit('message', {
+            text: nickNames[socket.id] + ': ' + message.text
+        })
+    });
+};
