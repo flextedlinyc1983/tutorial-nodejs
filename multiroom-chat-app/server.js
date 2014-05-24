@@ -22,6 +22,7 @@ var serveStatic = function (response, cache, absPath) {
         sendFile(response, absPath, cache[absPath]);
     } else {
         fs.exists(absPath, function (exists) {
+            console.log(absPath);
             if (!exists) {
                 send404(response);
             } else {
@@ -49,5 +50,5 @@ server.listen(PORT, function () {
 });
 
 // Set up Socket.IO server.
-var chatServer = require('.lib/chat_server');
+var chatServer = require('./lib/chat_server');
 chatServer.listen(server);

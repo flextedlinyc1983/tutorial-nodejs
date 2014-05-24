@@ -1,6 +1,6 @@
 var socketio = require("socket.io");
 var io;
-var guessNumber = 1;
+var guestNumber = 1;
 var nickNames = {};
 var namesUsed = [];
 var currentRoom = {};
@@ -15,7 +15,7 @@ exports.listen = function (server) {
         guestNumber = assignGuestName(socket, guestNumber, nickNames, namesUsed);
         joinRoom(socket, 'Lobby');  // Places user in Lobby room when they connect.
 
-        handleMessageBroadcast(socket, nickNames);
+        handleMessageBroadcasting(socket, nickNames);
         handleNameChangeAttempts(socket, nickNames, namesUsed);
         handleRoomJoining(socket);
 
@@ -78,7 +78,7 @@ var joinRoom = function (socket, room) {
         text: nickNames[socket.id] + ' has joined ' + room + '.'
     });
 
-    var usersInRoom = io.sockets.client(room);
+    var usersInRoom = io.sockets.clients(room);
     // Summarizes who are in the room right now, if other users exist
     if (usersInRoom.length > 1) {
         var usersInRoomSummary = 'Users currently in ' + room + ': ';
