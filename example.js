@@ -1,34 +1,34 @@
-var flow = require('nimble');
-var exec = require('child_process').exec;
+var http = require('http'),
+    parse = require('url').parse,
+    join = require('path').join,
+    fs = require('fs');
 
-function downloadNodeVersion(version, destination, callback) {
-    var url = 'http://nodejs.org/dist/node-v' + version + '.tar.gz',
-        filepath = destination + '/' + version + '.tgz';
+var root = __dirname;
 
-    exec('curl ' + url + ' > ' + filepath, callback);
-}
+var server = http.createServer(function (req, res) {
+    var url = parse(req.url),
+        path = join(root, url.pathname);
 
-flow.series([
-    function (callback) {
-        flow.parallel([
-            function (callback) {
-                console.log('Downloading Node v0.4.6...');
-                downloadNodeVersion('0.4.6', '/tmp', callback);
-            },
-            function (callback) {
-                console.log('Downloading Node v0.4.7...');
-                downloadNodeVersion('0.4.7', '/tmp', callback);
+    fs.stat(path, function (err, stat) {
+        if (err) {
+            if (err.code === 'ENOENT') {
+                res.statusCode = 404;
+                res.end('Not Found');
+            } else {
+                res.statusCode = 500;
+                res.end('Internal error server');
             }
-        ], callback);
-    },
-    function (callback) {
-        console.log('Creating archive of download files...');
-        exec(
-            'tar cvf node_distros.tar /tmp/0.4.6.tgz /tmp/0.4.7.tgz',
-            function (error, stdout, stderr) {
-                console.log('All done!');
-                callback();
-            }
-        );
-    }
-]);
+        } else {
+            res.setHeader('Content-Length', stat.size);
+            var stream = fs.createReadStream(path);
+            stream.pipe(res);
+            stream.on('error', function (err) {
+                res.statusCode = 500;
+                res.end('Internal Server Error');
+            });
+        }
+    });
+
+});
+
+server.listen(3000);
