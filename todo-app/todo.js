@@ -1,73 +1,90 @@
 var http = require('http');
-var url = require('url');
+var qs = require('querystring'),
+    formidable = require('formidable');
 
 var items = [];
 
-var getIndex = function ($url) {
-    var pathname = url.parse($url).pathname;
-    return parseInt(pathname.slice(1));
-};
 
 var server = http.createServer(function (req, res) {
-    var i, item;
-    switch (req.method) {
-        case 'POST':
-            item = '';
-            req.setEncoding('utf8');
-            req.on('data', function (chunk) {
-                item += chunk;
-            });
-            req.on('end', function () {
-                items.push(item);
-                res.end('OK\n');
-            });
-            break;
-
-        case 'GET':
-            var body = items.map(function (item, i) {
-                return i + ') ' + item;
-            }).join('\n');
-            res.setHeader('Content-Length', Buffer.byteLength(body));
-            res.setHeader('Content-Type', 'text/plain; charset="utf-8"');
-            res.end(body);
-            break;
-
-        case 'DELETE':
-            i = getIndex(req.url);
-
-            if (isNaN(i)) {
-                res.statusCode = 400;
-                res.end('Invalid item id\n');
-            } else if (!items[i]) {
-                res.statusCode = 404;
-                res.end('Item not found\n');
-            } else {
-                items.splice(i, 1);
-                res.end('OK!\n');
-            }
-            break;
-
-        case 'PUT':
-            i = getIndex(req.url);
-
-            if (isNaN(i)) {
-                res.statusCode = 400;
-                res.end('Invalid item id\n');
-            } else if (!items[i]) {
-                res.statusCode = 404;
-                res.end('Item not found\n');
-            } else {
-                req.setEncoding('utf8');
-                req.on('data', function (chunk) {
-                    if (chunk) item += chunk;
-                });
-                req.on('end', function () {
-                    items[i] = item;
-                    res.end('OK!\n');
-                });
-            }
-            break;
+    if ('/' === req.url) {
+        switch (req.method.toLowerCase()) {
+            case 'get':
+                show(res);
+                break;
+            case 'post':
+                upload(req, res);
+                break;
+            default :
+                badRequest(res);
+        }
     }
 });
 
 server.listen(3000);
+
+function show(res) {
+    var html = '<html><head><title>Todo List</title></head><body>'
+        + '<h1>Todo List</h1>'
+        + '<ul>'
+        + items.map(function (item) {
+            return '<li>' + item + '</li>'
+        }).join('')
+        + '</ul>'
+        + '<form method="post" action="/" enctype="multipart/form-data">'
+        + '<p><input type="text" name="item" /></p>'
+        + '<p><input type="file" name="file" /></p>'
+        + '<p><input type="submit" value="Submit" /></p>'
+        + '</form></body></html>';
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Length', Buffer.byteLength(html));
+    res.end(html);
+}
+
+function upload(req, res) {
+    if (!isFormData(req)) {
+        res.statusCode = 400;
+        res.end('Bad Request: expecting multipart/form-data');
+        return;
+    }
+
+    var form = new formidable.IncomingForm();
+
+    form.on('progress', function (bytesReceived, bytesExpected) {
+        var percent = Math.floor(bytesReceived / bytesExpected * 100);
+        console.log(percent);
+    });
+
+    form.parse(req);
+}
+
+function isFormData(req) {
+    var type = req.headers['content-type'] || '';
+    return 0 === type.indexOf('multipart/form-data');
+}
+
+function notFound(res) {
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Not Found');
+}
+
+
+function badRequest(res) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'text-plain');
+    res.end('Bad Request');
+}
+
+function add(req, res) {
+    var body = '';
+    req.setEncoding('utf-8');
+    req.on('data', function (chunk) {
+        body += chunk;
+    });
+    req.on('end', function () {
+        var obj = qs.parse(body);
+        items.push(obj.item);
+        show(res);
+    })
+}
+
