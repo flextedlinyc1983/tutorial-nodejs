@@ -1,5 +1,5 @@
-var http = require('http');
-var qs = require('querystring'),
+var http = require('http'),
+    qs = require('querystring'),
     formidable = require('formidable');
 
 var items = [];

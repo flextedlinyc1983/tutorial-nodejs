@@ -1,34 +1,59 @@
-var http = require('http'),
-    parse = require('url').parse,
-    join = require('path').join,
-    fs = require('fs');
+var fs = require('fs'),
+    path = require('path'),
+    args = process.argv.splice(2),
+    command = args.shift(),
+    taskDescription = args.join(' '),
+    file = path.join(process.cwd(), '/.tasks');
 
-var root = __dirname;
+switch (command) {
+    case 'list':
+        listTasks(file);
+        break;
 
-var server = http.createServer(function (req, res) {
-    var url = parse(req.url),
-        path = join(root, url.pathname);
+    case 'add':
+        addTask(file, taskDescription);
+        break;
 
-    fs.stat(path, function (err, stat) {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                res.statusCode = 404;
-                res.end('Not Found');
-            } else {
-                res.statusCode = 500;
-                res.end('Internal error server');
-            }
-        } else {
-            res.setHeader('Content-Length', stat.size);
-            var stream = fs.createReadStream(path);
-            stream.pipe(res);
-            stream.on('error', function (err) {
-                res.statusCode = 500;
-                res.end('Internal Server Error');
+    default :
+        console.log('Usage: ' + process.argv[0] + ' list|add [taskDescription]');
+}
+
+
+function loadOrInitializeTaskArray(file, callback) {
+    fs.exists(file, function (exists) {
+        var tasks = [];
+        if (exists) {
+            fs.readFile(file, 'utf-8', function (err, data) {
+                if (err) throw err;
+                data = data.toString();
+                var tasks = JSON.parse(data || '[]');
+                callback(tasks);
             });
+        } else {
+            cb([]);
+        }
+    })
+}
+
+
+function listTasks(file) {
+    loadOrInitializeTaskArray(file, function (tasks) {
+        for (var i in tasks) {
+            if (tasks.hasOwnProperty(i)) console.log(tasks[i]);
         }
     });
+}
 
-});
+function storeTasks(file, tasks) {
+    fs.writeFile(file, JSON.stringify(tasks), 'urf-8', function (err) {
+        if (err) throw err;
+        console.log('Saved.');
+    })
+}
 
-server.listen(3000);
+function addTask(file, taskDescription) {
+    loadOrInitializeTaskArray(file, function (tasks) {
+        tasks.push(taskDescription);
+        storeTasks(file, tasks);
+    });
+}
