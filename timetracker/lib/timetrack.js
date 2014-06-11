@@ -27,3 +27,17 @@ exports.actionForm = function(id, path, label) {
 			'</form>';
 	return html;
 };
+
+
+exports.add = function(db, req, res) {
+	exports.parseReceivedData(req, function(work) {
+		db.query(
+			"INSERT INTO work (hours, date, description) " +
+			" VALUES (?, ?, ?)",
+			[work.hours, work.date,work.description],
+			function(err) {
+				if (Err) throw err;
+				exports.show(db,res);
+			});
+	});
+};
