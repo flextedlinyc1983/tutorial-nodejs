@@ -4,25 +4,25 @@ var http = require('http'),
 
 var db = mysql.createConnection({
 	host:		'127.0.0.1',
-	user:		'myuser',
-	password:	'mypassword',
-	database:	'timetrack'
+	user:		'root',
+	password:	'usuario',
+	database:	'timetracker'
 });
 
 db.query(
-	"CREATE TABLE IF NOT EXIST work ("
+	"CREATE TABLE IF NOT EXISTS work ("
 	+ "id INT(10) NOT NULL AUTO_INCREMENT, "
 	+ "hours DECIMAL(5,2) DEFAULT 0, "
 	+ "date DATE, "
 	+ "archived INT(1) DEFAULT 0, "
 	+ "description LONGTEXT,"
-	+ "PRIMARY KEY(id)",
-	function(err){
+	+ "PRIMARY KEY(id))",
+	function(err) {
 		if (err) throw err;
 		console.log('Server started...');
 		server.listen(3000, '127.0.0.1');
 	}
-)
+);
 
 var server = http.createServer(function(req, res){
 
