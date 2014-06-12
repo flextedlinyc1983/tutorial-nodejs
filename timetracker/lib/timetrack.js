@@ -28,7 +28,6 @@ exports.actionForm = function(id, path, label) {
 	return html;
 };
 
-
 exports.add = function(db, req, res) {
 	exports.parseReceivedData(req, function(work) {
 		db.query(
@@ -38,6 +37,30 @@ exports.add = function(db, req, res) {
 			function(err) {
 				if (Err) throw err;
 				exports.show(db,res);
+			});
+	});
+};
+
+exports.delete = function(db, req, res) {
+	exports.parseReceivedData(req, function(work){
+		db.query(
+			"DELETE FROM work WHERE id=?",
+			[work.id],
+			function(err) {
+				if (err) throw err;
+				exports.show(db, res);
+			});
+	});
+};
+
+exports.archive = function(db, req, res) {
+	exports.parseReceivedData(req, function(work){
+		db.query(
+			"UPDATE work SET archived=1 WHERE id=?",
+			[work.id],
+			function(err){
+				if (err) throw err;
+				exports.show(db, res);
 			});
 	});
 };
