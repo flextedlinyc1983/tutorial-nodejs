@@ -1,59 +1,55 @@
-var fs = require('fs'),
-    path = require('path'),
-    args = process.argv.splice(2),
-    command = args.shift(),
-    taskDescription = args.join(' '),
-    file = path.join(process.cwd(), '/.tasks');
-
-switch (command) {
-    case 'list':
-        listTasks(file);
-        break;
-
-    case 'add':
-        addTask(file, taskDescription);
-        break;
-
-    default :
-        console.log('Usage: ' + process.argv[0] + ' list|add [taskDescription]');
-}
+var redis = require('redis');
 
 
-function loadOrInitializeTaskArray(file, callback) {
-    fs.exists(file, function (exists) {
-        var tasks = [];
-        if (exists) {
-            fs.readFile(file, 'utf-8', function (err, data) {
-                if (err) throw err;
-                data = data.toString();
-                var tasks = JSON.parse(data || '[]');
-                callback(tasks);
-            });
-        } else {
-            cb([]);
-        }
-    })
-}
+var client = redis.createClient(6379, 'localhost');
 
+client.on('error', function (err) {
+    console.log('Error ' + err);
+});
 
-function listTasks(file) {
-    loadOrInitializeTaskArray(file, function (tasks) {
-        for (var i in tasks) {
-            if (tasks.hasOwnProperty(i)) console.log(tasks[i]);
-        }
+// Simple variable
+client.set('color', 'red', redis.print);
+client.get('color', function (err, value) {
+    if (err) throw err;
+    console.log('Got: ' + value);
+});
+
+// Hash table
+client.hmset('camping', {
+    'shelter': '2-person tent',
+    'cooking': 'campstove'
+}, redis.print);
+
+client.hget('camping', 'cooking', function (err, value) {
+    if (err) throw err;
+    console.log('Will be cooking with: ' + value);
+});
+
+client.hkeys('camping', function (err, keys) {
+    if (err) throw err;
+    keys.forEach(function (key, i) {
+        console.log(' ' + key);
     });
-}
+});
 
-function storeTasks(file, tasks) {
-    fs.writeFile(file, JSON.stringify(tasks), 'urf-8', function (err) {
-        if (err) throw err;
-        console.log('Saved.');
-    })
-}
 
-function addTask(file, taskDescription) {
-    loadOrInitializeTaskArray(file, function (tasks) {
-        tasks.push(taskDescription);
-        storeTasks(file, tasks);
+//List
+client.lpush('tasks', 'Paint the bikeshed red.', redis.print);
+client.lpush('tasks', 'Paint the bikeshed green.', redis.print);
+client.lrange('tasks', 0, 2, function (err, items) {
+    if (err) throw err;
+    items.forEach(function (item, i) {
+        console.log(' ' + item);
     });
-}
+});
+
+// Sets
+var SET_IP_ADDRESSES = 'ip_addresses';
+client.sadd(SET_IP_ADDRESSES, '204.10.37.96', redis.print);
+client.sadd(SET_IP_ADDRESSES, '204.10.37.96', redis.print);
+client.sadd(SET_IP_ADDRESSES, '72.32.231.8', redis.print);
+client.smembers(SET_IP_ADDRESSES, function (err, members) {
+    if (err) throw err;
+    console.log(members);
+});
+
