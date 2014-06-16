@@ -1,55 +1,54 @@
-var redis = require('redis');
+var mongodb = require('mongodb');
+
+var server = new mongodb.Server('localhost', 27017, {});
+
+var client = new mongodb.Db('mydatabase', server, {w: 1});
 
 
-var client = redis.createClient(6379, 'localhost');
-
-client.on('error', function (err) {
-    console.log('Error ' + err);
-});
-
-// Simple variable
-client.set('color', 'red', redis.print);
-client.get('color', function (err, value) {
+client.open(function (err) {
     if (err) throw err;
-    console.log('Got: ' + value);
-});
+    client.collection('test_insert', function (err, collection) {
+            if (err) throw err;
+            console.log('We are now able to perform queries');
 
-// Hash table
-client.hmset('camping', {
-    'shelter': '2-person tent',
-    'cooking': 'campstove'
-}, redis.print);
+            collection.insert(
+                {
+                    "title": "I like cake",
+                    "body": "It is quite good."
+                },
+                {safe: true},
+                function (err, documents) {
+                    if (err) throw err;
+                    console.log('Document ID is: ' + documents[0]._id);
+                }
+            );
 
-client.hget('camping', 'cooking', function (err, value) {
-    if (err) throw err;
-    console.log('Will be cooking with: ' + value);
-});
+            var _id = new client.bson_serializer.ObjectID('539f5262dde53d1332cc7c16');
+            collection.update(
+                {_id: _id},
+                {
+                    $set: {
+                        "title": "I ate too much cake"
+                    }
+                },
+                {safe: true},
+                function (err) {
+                    if (err) throw err;
+                });
 
-client.hkeys('camping', function (err, keys) {
-    if (err) throw err;
-    keys.forEach(function (key, i) {
-        console.log(' ' + key);
-    });
-});
+            collection.find({"title": "I like cake"}).toArray(
+                function (err, results) {
+                    if (err) throw err;
+                    console.log(results);
+                }
+            );
 
-
-//List
-client.lpush('tasks', 'Paint the bikeshed red.', redis.print);
-client.lpush('tasks', 'Paint the bikeshed green.', redis.print);
-client.lrange('tasks', 0, 2, function (err, items) {
-    if (err) throw err;
-    items.forEach(function (item, i) {
-        console.log(' ' + item);
-    });
-});
-
-// Sets
-var SET_IP_ADDRESSES = 'ip_addresses';
-client.sadd(SET_IP_ADDRESSES, '204.10.37.96', redis.print);
-client.sadd(SET_IP_ADDRESSES, '204.10.37.96', redis.print);
-client.sadd(SET_IP_ADDRESSES, '72.32.231.8', redis.print);
-client.smembers(SET_IP_ADDRESSES, function (err, members) {
-    if (err) throw err;
-    console.log(members);
+            var _id = new client.bson_serializer.ObjectID('539f55f5b0858cac35ec828f');
+            console.log('ID: ' + _id + ' will be deleted.');
+            collection.remove({_id: _id}, {safe: true}, function (err) {
+                if (err) throw err;
+            });
+        }
+    )
 });
 
