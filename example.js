@@ -1,54 +1,44 @@
-var mongodb = require('mongodb');
+var mongoose = require('mongoose');
 
-var server = new mongodb.Server('localhost', 27017, {});
+var db = mongoose.connect('mongodb://localhost/tasks'),
+    Schema = mongoose.Schema;
 
-var client = new mongodb.Db('mydatabase', server, {w: 1});
+var TaskSchema = new Schema({
+    project: String,
+    description: String
+});
+var Task = mongoose.model('Task', TaskSchema);
+var task = new Task();
 
-
-client.open(function (err) {
+task.project = 'Bikeshed';
+task.description = 'Paint the bikeshed red.';
+task.save(function (err) {
     if (err) throw err;
-    client.collection('test_insert', function (err, collection) {
-            if (err) throw err;
-            console.log('We are now able to perform queries');
-
-            collection.insert(
-                {
-                    "title": "I like cake",
-                    "body": "It is quite good."
-                },
-                {safe: true},
-                function (err, documents) {
-                    if (err) throw err;
-                    console.log('Document ID is: ' + documents[0]._id);
-                }
-            );
-
-            var _id = new client.bson_serializer.ObjectID('539f5262dde53d1332cc7c16');
-            collection.update(
-                {_id: _id},
-                {
-                    $set: {
-                        "title": "I ate too much cake"
-                    }
-                },
-                {safe: true},
-                function (err) {
-                    if (err) throw err;
-                });
-
-            collection.find({"title": "I like cake"}).toArray(
-                function (err, results) {
-                    if (err) throw err;
-                    console.log(results);
-                }
-            );
-
-            var _id = new client.bson_serializer.ObjectID('539f55f5b0858cac35ec828f');
-            console.log('ID: ' + _id + ' will be deleted.');
-            collection.remove({_id: _id}, {safe: true}, function (err) {
-                if (err) throw err;
-            });
-        }
-    )
+    console.log('Task saved.');
 });
 
+Task.find({project: 'Bikeshed' }, function (err, tasks) {
+
+    var len = tasks.length;
+    for (var i = 0; i < len; ++i) {
+        var task = tasks[i];
+        console.log('ID: ' + task._id);
+        console.log(task.description);
+    }
+//    mongoose.disconnect();
+});
+
+Task.update(
+    {_id: '53a58e6ff53e001860da4bfb'},
+    {description: 'Paint the bikeshed green.'},
+    {multi: false},
+    function (err, rowsUpdated) {
+        if (err) throw err;
+        console.log('Updated');
+    }
+);
+
+
+Task.findById('53a58e6ff53e001860da4bfb', function (err, task) {
+    task.remove();
+});
