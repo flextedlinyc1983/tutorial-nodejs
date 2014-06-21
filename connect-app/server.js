@@ -1,10 +1,5 @@
 var connect = require('connect');
 
-var logger = function (req, res, next) {
-    console.log("%s %s", req.method, req.url);
-    next();
-};
-
 var authenticateWithDatabase = function (user, pass, next) {
     if (user === 'tobi' && pass === 'ferret') next();
 };
@@ -46,8 +41,25 @@ var admin = function (req, res, next) {
     }
 };
 
+
+var setup = function (format) {
+    var regexp = /:(\w+)/g;
+    return function logger(req, res, next) {
+        var str = format.replace(regexp, function (match, property) {
+            return req[property];
+        });
+
+        console.log(str);
+
+        next();
+    }
+};
+
+module.exports = setup;
+
+
 connect()
-    .use(logger)
+    .use(setup(':method :url'))
     .use('/admin', restrict)
     .use('/admin', admin)
     .use(hello)
