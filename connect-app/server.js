@@ -1,6 +1,7 @@
 var connect = require('connect'),
     router = require('./middleware/router');
 
+
 var routes = {
     GET: {
         '/users': function (req, res) {
@@ -58,6 +59,22 @@ var admin = function (req, res, next) {
     }
 };
 
+var errorHandler = function () {
+    var env = process.env.NODE_ENV || 'development';
+    return function (err, req, res, next) {
+
+        res.statusCode = 500;
+        switch (env) {
+            case 'development':
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(err));
+                break;
+
+            default :
+                res.end('Server error');
+        }
+    }
+};
 
 var setup = function (format) {
     var regexp = /:(\w+)/g;
@@ -79,4 +96,5 @@ module.exports = setup;
 connect()
     .use(setup(':method :url'))
     .use(router(routes))
+    .use(errorHandler)
     .listen(3000);
