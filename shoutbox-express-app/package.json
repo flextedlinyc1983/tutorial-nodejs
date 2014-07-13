@@ -9,6 +9,8 @@
         "express": "3.x",
         "ejs": "*",
         "bcrypt-nodejs": "0.0.3",
-        "redis": "0.7.2"
+        "redis": "0.7.2",
+        "cookie-parser": "~1.0.1",
+        "method-override": "~2.1.1"
     }
 }
