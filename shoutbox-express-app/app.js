@@ -10,12 +10,16 @@ var user = require('./lib/middleware/user');
 
 var register = require('./routes/register'),
     login = require('./routes/login'),
+    entries = require('./routes/entries'),
     messages = require('./lib/messages');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+app.get('/', entries.list);
+app.get('/post', entries.form);
+app.post('/post', entries.submit);
 app.get('/register', register.form);
 app.post('/register', register.submit);
 app.get('/login', login.form);
