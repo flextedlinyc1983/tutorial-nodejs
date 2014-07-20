@@ -6,6 +6,8 @@ var express = require('express'),
 
 var app = express();
 
+var user = require('./lib/middleware/user');
+
 var register = require('./routes/register'),
     login = require('./routes/login'),
     messages = require('./lib/messages');
@@ -20,11 +22,13 @@ app.get('/login', login.form);
 app.post('/login', login.submit);
 app.get('/register', login.logout);
 
-app.use(methodOverride());
-app.use(express.cookieParser('your secret here'));
 app.use(session({
     secret: 'keyboard cat',
     resave: true,
     saveUninitialized: true
 }));
-app.use(messages());
+app.use(methodOverride);
+app.use(express.cookieParser('your secret here'));
+app.use(user);
+app.use(messages);
+app.use(app.router);
