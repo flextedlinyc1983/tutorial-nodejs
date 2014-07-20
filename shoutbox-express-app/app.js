@@ -7,6 +7,7 @@ var express = require('express'),
 var app = express();
 
 var register = require('./routes/register'),
+    login = require('./routes/login'),
     messages = require('./lib/messages');
 
 // view engine setup
@@ -15,6 +16,9 @@ app.set('view engine', 'ejs');
 
 app.get('/register', register.form);
 app.post('/register', register.submit);
+app.get('/login', login.form);
+app.post('/login', login.submit);
+app.get('/register', login.logout);
 
 app.use(methodOverride());
 app.use(express.cookieParser('your secret here'));
