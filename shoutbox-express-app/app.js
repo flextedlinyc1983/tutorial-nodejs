@@ -1,4 +1,5 @@
 var express = require('express'),
+    path = require('path'),
     methodOverride = require('method-override'),
     cookieParser = require('cookie-parser'),
     session = require('express-session');
@@ -15,7 +16,11 @@ app.set('view engine', 'ejs');
 app.get('/register', register.form);
 app.post('/register', register.submit);
 
-app.use(express.methodOverride());
+app.use(methodOverride());
 app.use(express.cookieParser('your secret here'));
-app.use(express.session());
+app.use(session({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true
+}));
 app.use(messages());
