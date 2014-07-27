@@ -3,7 +3,21 @@ var redis = require('redis'),
 
 var db = redis.createClient();
 
-module.exports = User;
+module.exports = function (req, res, next) {
+    if (req.remoteUser) {
+        res.locals.user = req.remoteUser;
+    }
+
+    var uid = req.session.uid;
+
+    if (!uid) return next();
+
+    User.get(uid, function (err, user) {
+        if (err) return next(err);
+        req.user = res.locals.user = user;
+        next();
+    })
+};
 
 function User(obj) {
     for (var key in obj) {
@@ -81,4 +95,11 @@ User.authenticate = function (name, pass, fn) {
             fn();
         });
     });
+};
+
+User.prototype.toJSON = function () {
+    return {
+        id: this.id,
+        name: this.name
+    }
 };

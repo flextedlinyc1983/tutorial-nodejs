@@ -10,12 +10,13 @@ var user = require('./lib/middleware/user'),
     validate = require('./lib/middleware/validate'),
     page = require('./lib/middleware/page');
 
-var Entry = require('./lib/entry');
+var Entry = require('./lib/entry'),
+    messages = require('./lib/messages');
 
 var register = require('./routes/register'),
     login = require('./routes/login'),
     entries = require('./routes/entries'),
-    messages = require('./lib/messages');
+    api = require('./routes/api');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -35,6 +36,11 @@ app.get('/login', login.form);
 app.post('/login', login.submit);
 app.get('/register', login.logout);
 
+// REST API
+app.get('/api/user/:id', api.user);
+app.get('/api/entries/:page?', page(Entry.count), api.entries);
+app.post('/api/entry', entries.submit);
+
 app.use(session({
     secret: 'keyboard cat',
     resave: true,
@@ -42,6 +48,7 @@ app.use(session({
 }));
 app.use(methodOverride);
 app.use(express.cookieParser('your secret here'));
+app.use('/api', api.auth);  // before user data middleware
 app.use(user);
 app.use(messages);
 app.use(app.router);
