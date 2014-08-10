@@ -35,6 +35,13 @@ app.post('/register', register.submit);
 app.get('/login', login.form);
 app.post('/login', login.submit);
 app.get('/register', login.logout);
+if (process.en.ERROR_ROUTE) {
+    app.get('/dev/error', function (req, res, next) {
+        var err = new Error('database connection failed');
+        err.type = 'database';
+        next(err);
+    });
+}
 
 // REST API
 app.get('/api/user/:id', api.user);
@@ -51,4 +58,7 @@ app.use(express.cookieParser('your secret here'));
 app.use('/api', api.auth);  // before user data middleware
 app.use(user);
 app.use(messages);
+
 app.use(app.router);
+app.use(routes.notFound);
+app.use(routes.error);
