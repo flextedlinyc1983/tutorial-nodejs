@@ -1,7 +1,8 @@
 {
-  "name": "application-name",
-  "version": "0.0.1",
-  "dependencies": {
-    "connect": "^3.0.1"
-  }
+    "name": "application-name",
+    "version": "0.0.1",
+    "dependencies": {
+        "connect": "^3.0.1",
+        "nodeunit": "^0.9.0"
+    }
 }
