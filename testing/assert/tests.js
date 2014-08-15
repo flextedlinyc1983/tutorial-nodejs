@@ -1,5 +1,5 @@
 var assert = require('assert'),
-    Todo = require('./todo');
+    Todo = require('./../todo');
 
 
 var todo = new Todo(),
