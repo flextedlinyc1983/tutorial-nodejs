@@ -1,5 +1,8 @@
 var fs = require('fs'),
-    http = require('http');
+    http = require('http'),
+    ejs = require('ejs');
+
+var template = fs.readFileSync('./templates/blog_page.ejs', 'utf-8');
 
 function getEntries() {
 
@@ -39,7 +42,7 @@ console.log(entries);
 
 
 var server = http.createServer(function (req, res) {
-    var output = blogPage(entries);
+    var output = blogPageEJS(entries);
 
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end(output);
@@ -48,7 +51,7 @@ var server = http.createServer(function (req, res) {
 server.listen(8000);
 
 
-function blogPage(entries) {
+function blogPageWithoutTemplateEngine(entries) {
     var output = '<html>'
         + '<head>'
         + '<style type="text/css">'
@@ -66,4 +69,10 @@ function blogPage(entries) {
     });
     output += '</body></html>';
     return output;
+}
+
+
+function blogPageEJS(entries) {
+    var values = {entries: entries};
+    return ejs.render(template, {locals: values});
 }
